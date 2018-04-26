@@ -122,7 +122,5 @@ for k=1:K[1]
 
 end
 
-
-
 attacker_buddet=2; # attacker budget ### Must change based on  the paper
- 
+ r=60  #range of defence facilities
