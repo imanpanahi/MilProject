@@ -1,5 +1,9 @@
-using JuMP,Cbc
+using JuMP,Cbc,Gadfly
 
+function Ecualidian_distanse(x1::Float64,x2::Float64,y1::Float64,y2::Float64)
+    dist=((x1-x2)^2+(y1-y2)^2)^(1/2)
+    return dist
+end
 ################ Index ###################
 I=20; # set of customer (i<I)
 J=3; # set of service facilities (j<J)
@@ -64,9 +68,9 @@ d=[476.003 294.567 446.644;
    439.407 311.713 598.116;
    884.425 587.149 975.199];
 # the cost of stablishing a defence facilitiy in location k
-c=[18000.0 19000.0 19000.0 1000.0 5000.0 17000.0 5000.0 2000.0 6000.0]
+c=[18000.0,19000.0,19000.0,1000.0,5000.0,17000.0,5000.0,2000.0,6000.0]
 
-r=60; #coverage range of each defence facility
+r=500; #coverage range of each defence facility
 
 #distance between facility j and defence k
 f=[706.834 858.766 554.051 708.77 83.7825 709.958 685.75 450.249 116.064;
@@ -86,8 +90,6 @@ CS=2
  # unit outsourcing cost of demand (independent of distance)
 CO=500
 
-Kp=Vector(); #set of defence facalities that are in range of service facilities
-
 #Attacekr Budget
 B=2
 
@@ -96,7 +98,7 @@ B=2
 m1=Model(solver=CbcSolver())
 
 @variable(m1,X[1:K],Bin) #if decided to establish a defence facility in site k X[k]=1...
-@variable(m1,Y[1:J,1:K],Bin)
+@variable(m1,Y[1:J,1:K],Bin) # if jth facility covered by kth defence
 
 @objective(m1,Min,sum(c[k]*X[k] for k=1:K))
 
@@ -106,7 +108,7 @@ for j=1:J
 end
 
 for k=1:K
-    @constraint(m1,sum(Y[j=1:J,k])<=10000*X[k]) ##3
+    @constraint(m1,sum(Y[j=1:J,k])<=1000*X[k]) ##3
 end
 
 for j=1:J
@@ -115,7 +117,16 @@ for j=1:J
     end
 end
 
-##5
+for j=1:J
+   for k=1:K
+      if Ecualidian_distanse(service_location[j,1],pdef_location[k,1],service_location[j,2],pdef_location[k,2])<=r
+         @constraint(m1,Y[j,k]==1)
+      end
+   end
+end
+
+solve(m1)
+getobjectivevalue(m1)
 
 ########## level 2 model ##########
 m2=Model(solver=CbcSolver());
@@ -144,5 +155,17 @@ for j=1:J
     c=prod(1-p[j,:].*V[j,:])
     @constraint(m3,sum(a[i]*U[i,j] for i=1:I)<=q[j]*(1-T[j])*prod(1-p[1,:].*V[1,:])+q[j]*(1-prod(1-p[1,:].*V[1,:])))
 end
-solve(m3)
+@time solve(m3)
 getobjectivevalue(m3)
+
+
+
+
+plot(
+      layer(x=costumer_location[:,1], y=costumer_location[:,2],Geom.point,color=[colorant"black"],shape=[Shape.diamond]),
+      layer(x=service_location[:,1],y=service_location[:,2],Geom.point,color=[colorant"orange"],shape=[Shape.circle]),
+      layer(x=pdef_location[:,1],y=pdef_location[:,2],Geom.point,color=[colorant"purple"],shape=[Shape.xcross]),
+      Guide.manual_color_key("locations", ["costumer locations", "service locations","defence faciity locations"],
+                           ["black", "orange","purple"]),
+      Theme(background_color="white", point_size=6pt)
+       )
