@@ -1,4 +1,4 @@
-using JuMP,Cbc,
+using JuMP,Cbc
 
 ################ Index ###################
 I=20; # set of customer (i<I)
@@ -127,8 +127,10 @@ m2=Model(solver=CbcSolver());
 m3=Model(solver=CbcSolver())
 
 @variable(m3,U[1:I,1:J],Bin) # if customer i allocated to service j
-@variable(m3,T[1:J],Bin) ## this variable is equal to S[j] variable in M2 model
-@variable(m3,V[1:J,1:K],Bin) ## this vaiable is equal to Y[i,j] variable in M1 model
+#@variable(m3,T[1:J],Bin) ## this variable is equal to S[j] variable in M2 model
+#@variable(m3,V[1:J,1:K],Bin) ## this vaiable is equal to Y[i,j] variable in M1 model
+T=[1,0,1];
+V=[1 0 0 1 0 1 0 1 1;0 0 0 0 0 1 0 1 1;1 0 0 1 1 0 0 0 0;]
 
 
 @objective(m3,Min,CS*(sum(sum(a[i]*d[i,j]*U[i,j] for i=1:I) for j=1:J))+(sum(a[i] for i=1:I)*(1-(sum(sum(U[i,j] for i=1:I) for j=1:J)))))
@@ -137,6 +139,10 @@ for i=1:I
     @constraint(m3,sum(U[i,j] for j=1:J)<=1)
 end
 
+
 for j=1:J
-    @NLconstraint(m3,sum(a[i]*U[i,j] for i=1:I)<=q[j]*(1-T[j])*(prod((1-p[j,k]*V[j,k]) for k=1:K))+q[j]*(1-prod((1-p[j,k]*V[j,k]) for k=1:K)))
+    c=prod(1-p[j,:].*V[j,:])
+    @constraint(m3,sum(a[i]*U[i,j] for i=1:I)<=q[j]*(1-T[j])*prod(1-p[1,:].*V[1,:])+q[j]*(1-prod(1-p[1,:].*V[1,:])))
 end
+solve(m3)
+getobjectivevalue(m3)
