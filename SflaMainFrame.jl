@@ -17,7 +17,7 @@ function TwoPointCrossOver(best::Array{Int64,1},sol::Array{Int64,1})
         return new_sol
 end
 
-function SortPop(population) # sort population based of their fitness
+function Sort(population) # sort population based of their fitness
     fits=zeros(length(population))
     for i=1:length(population)
         fits[i]=population[i].fitness
