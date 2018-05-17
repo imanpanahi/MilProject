@@ -43,3 +43,17 @@ function Partition(s_population,m,n) # partition population into m memplex
     end
     return p_population
 end
+
+function HammingDistance(a::Array{Int32},b::Array{Int32})
+	distance=countnz(a-b);
+end
+
+function FrogLeap(best_sol::Array{Int64},worst_sol::Array{Int64},smax::Int64)
+	new_sol=deepcopy(worst_sol)
+	p1=rand(2:length(best_sol)-smax)
+	p2=p1+min(HammingDistance(best_sol,worst_sol),smax)
+
+	@show block=best_sol[p1:p2];
+	@show new_sol[p1:p2]=block
+	return new_sol
+end
