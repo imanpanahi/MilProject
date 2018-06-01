@@ -57,3 +57,12 @@ function FrogLeap(best_sol::Array{Int64},worst_sol::Array{Int64},smax::Int64)
 	@show new_sol[p1:p2]=block
 	return new_sol
 end
+
+function SelectionProb(n)
+    prob_vector=[];
+    for i=1:n
+        p=2*(n+1-i)/(n*(n+1))
+        push!(prob_vector,p)
+    end
+    return prob_vector
+end
