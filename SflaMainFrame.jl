@@ -66,3 +66,20 @@ function SelectionProb(n)
     end
     return prob_vector
 end
+
+function CreatePop(m,n,K)
+    population=[];
+    for i=1:n*m
+        seq=zeros(K);
+        for j=1:K
+            if rand()<0.5
+               seq[j]=1
+           else
+               seq[j]=0
+            end
+        end
+        sol=solution(seq,0)
+        push!(population,sol)
+    end
+    return population
+end
